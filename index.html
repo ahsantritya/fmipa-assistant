@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FMIPA ITB 2026 Assistant — Kawan</title>
+
+    <style>
+      /* ── Reset & Variabel ─────────────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --biru-itb: #003366;
+        --biru-muda: #0055a4;
+        --biru-terang: #1a6fc4;
+        --biru-hover: #004080;
+        --putih: #ffffff;
+        --abu-muda: #f4f6fa;
+        --abu-border: #dce3ef;
+        --teks-gelap: #1a2535;
+        --teks-abu: #6b7a99;
+        --bubble-kawan: #eef3fb;
+        --bubble-user: #003366;
+        --shadow: 0 4px 24px rgba(0, 51, 102, 0.12);
+        --radius: 18px;
+        --radius-sm: 10px;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #e8eef7 0%, #f4f6fa 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ── Container Utama ──────────────────────────────────────────────── */
+      .app-container {
+        width: 100%;
+        max-width: 780px;
+        height: 100vh;
+        max-height: 880px;
+        display: flex;
+        flex-direction: column;
+        background: var(--putih);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        margin: 16px auto;
+      }
+
+      /* ── Header ───────────────────────────────────────────────────────── */
+      .header {
+        background: linear-gradient(135deg, var(--biru-itb) 0%, var(--biru-muda) 100%);
+        color: var(--putih);
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-shrink: 0;
+      }
+
+      .header-avatar {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+        border: 2px solid rgba(255,255,255,0.3);
+      }
+
+      .header-info h1 {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+
+      .header-info p {
+        font-size: 13px;
+        opacity: 0.85;
+        margin-top: 2px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #4ade80;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        animation: pulsa 2s ease-in-out infinite;
+      }
+
+      @keyframes pulsa {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      /* ── Area Chat ────────────────────────────────────────────────────── */
+      .chat-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 20px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        background: var(--abu-muda);
+        scroll-behavior: smooth;
+      }
+
+      .chat-area::-webkit-scrollbar { width: 5px; }
+      .chat-area::-webkit-scrollbar-track { background: transparent; }
+      .chat-area::-webkit-scrollbar-thumb { background: var(--abu-border); border-radius: 3px; }
+
+      /* ── Bubble Chat ──────────────────────────────────────────────────── */
+      .baris-pesan {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+      }
+
+      .baris-pesan.user { flex-direction: row-reverse; }
+
+      .avatar-kawan {
+        width: 32px;
+        height: 32px;
+        background: var(--biru-itb);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+
+      .bubble {
+        max-width: 72%;
+        padding: 12px 16px;
+        border-radius: var(--radius);
+        line-height: 1.55;
+        font-size: 14.5px;
+        word-wrap: break-word;
+        position: relative;
+        animation: fadeSlide 0.25s ease-out;
+      }
+
+      @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .bubble.kawan {
+        background: var(--putih);
+        color: var(--teks-gelap);
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,51,102,0.08);
+      }
+
+      .bubble.user {
+        background: var(--bubble-user);
+        color: var(--putih);
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,51,102,0.2);
+      }
+
+      .waktu-pesan {
+        font-size: 11px;
+        color: var(--teks-abu);
+        margin-top: 4px;
+        padding: 0 4px;
+      }
+
+      .baris-pesan.user .waktu-pesan { text-align: right; }
+
+      /* ── Typing Indicator ─────────────────────────────────────────────── */
+      .typing-indicator {
+        display: none;
+        align-items: flex-end;
+        gap: 8px;
+      }
+
+      .typing-indicator.tampil { display: flex; }
+
+      .titik-animasi {
+        background: var(--putih);
+        border-radius: 20px;
+        padding: 12px 18px;
+        display: flex;
+        gap: 5px;
+        box-shadow: 0 2px 8px rgba(0,51,102,0.08);
+      }
+
+      .titik-animasi span {
+        width: 8px;
+        height: 8px;
+        background: var(--biru-terang);
+        border-radius: 50%;
+        animation: titikLompat 1.2s ease-in-out infinite;
+      }
+
+      .titik-animasi span:nth-child(2) { animation-delay: 0.2s; }
+      .titik-animasi span:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes titikLompat {
+        0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+        40%            { transform: translateY(-7px); opacity: 1; }
+      }
+
+      /* ── Quick Reply Buttons ──────────────────────────────────────────── */
+      .quick-reply-area {
+        padding: 10px 20px;
+        background: var(--putih);
+        border-top: 1px solid var(--abu-border);
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .quick-reply-area::-webkit-scrollbar { height: 3px; }
+      .quick-reply-area::-webkit-scrollbar-thumb { background: var(--abu-border); border-radius: 3px; }
+
+      .btn-quick {
+        display: inline-block;
+        padding: 7px 14px;
+        margin-right: 8px;
+        background: var(--abu-muda);
+        color: var(--biru-itb);
+        border: 1.5px solid var(--abu-border);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        white-space: nowrap;
+        user-select: none;
+      }
+
+      .btn-quick:hover {
+        background: var(--biru-itb);
+        color: var(--putih);
+        border-color: var(--biru-itb);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(0,51,102,0.2);
+      }
+
+      .btn-quick:active { transform: translateY(0); }
+
+      /* ── Input Area ───────────────────────────────────────────────────── */
+      .input-area {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 14px 20px;
+        background: var(--putih);
+        border-top: 1px solid var(--abu-border);
+        flex-shrink: 0;
+      }
+
+      .input-teks {
+        flex: 1;
+        padding: 11px 16px;
+        border: 1.5px solid var(--abu-border);
+        border-radius: 24px;
+        font-size: 14.5px;
+        font-family: inherit;
+        outline: none;
+        resize: none;
+        max-height: 110px;
+        line-height: 1.45;
+        transition: border-color 0.2s;
+        color: var(--teks-gelap);
+        background: var(--abu-muda);
+      }
+
+      .input-teks:focus { border-color: var(--biru-terang); background: var(--putih); }
+      .input-teks::placeholder { color: var(--teks-abu); }
+
+      .btn-kirim {
+        width: 44px;
+        height: 44px;
+        background: var(--biru-itb);
+        color: var(--putih);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.18s ease;
+        flex-shrink: 0;
+      }
+
+      .btn-kirim:hover { background: var(--biru-hover); transform: scale(1.06); }
+      .btn-kirim:active { transform: scale(0.96); }
+      .btn-kirim:disabled { background: var(--abu-border); cursor: not-allowed; transform: none; }
+
+      .btn-kirim svg { width: 20px; height: 20px; }
+
+      /* ── Responsive Mobile ────────────────────────────────────────────── */
+      @media (max-width: 600px) {
+        .app-container { margin: 0; border-radius: 0; max-height: 100vh; height: 100dvh; }
+        .bubble { max-width: 85%; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app-container">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="header-avatar">🎓</div>
+        <div class="header-info">
+          <h1>FMIPA ITB 2026 Assistant</h1>
+          <p><span class="status-dot"></span>Powered by Punakawan FMIPA</p>
+        </div>
+      </div>
+
+      <!-- Area Chat -->
+      <div class="chat-area" id="chatArea">
+        <!-- Pesan muncul di sini secara dinamis -->
+
+        <!-- Typing indicator -->
+        <div class="baris-pesan typing-indicator" id="typingIndicator">
+          <div class="avatar-kawan">🤖</div>
+          <div class="titik-animasi">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Reply Buttons -->
+      <div class="quick-reply-area">
+        <button class="btn-quick" onclick="kirimCepat('Info TPB')">📚 Info TPB</button>
+        <button class="btn-quick" onclick="kirimCepat('Jadwal Penting apa saja?')">📅 Jadwal Penting</button>
+        <button class="btn-quick" onclick="kirimCepat('Bagaimana cara memilih prodi?')">🔬 Pilih Prodi</button>
+        <button class="btn-quick" onclick="kirimCepat('Info Ospek FMIPA ITB')">🎉 Info Ospek</button>
+        <button class="btn-quick" onclick="kirimCepat('Fasilitas kampus Jatinangor apa saja?')">🏫 Fasilitas Kampus</button>
+        <button class="btn-quick" onclick="kirimCepat('Kontak Punakawan FMIPA')">📞 Kontak Punakawan</button>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <textarea
+          class="input-teks"
+          id="inputPesan"
+          placeholder="Tanya apa saja tentang FMIPA ITB..."
+          rows="1"
+        ></textarea>
+        <button class="btn-kirim" id="btnKirim" onclick="kirimPesan()" title="Kirim">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+    <script>
+      // ── Konfigurasi ──────────────────────────────────────────────────────────
+      // ID sesi unik per kunjungan browser
+      const SESSION_ID = 'web-' + Math.random().toString(36).substring(2, 11);
+
+      const chatArea     = document.getElementById('chatArea');
+      const inputPesan   = document.getElementById('inputPesan');
+      const btnKirim     = document.getElementById('btnKirim');
+      const typingIndicator = document.getElementById('typingIndicator');
+
+      // ── Fungsi Utilitas ──────────────────────────────────────────────────────
+
+      // Tambahkan bubble pesan ke area chat
+      function tambahBubble(teks, pengirim) {
+        const waktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const isKawan = pengirim === 'kawan';
+
+        const barisan = document.createElement('div');
+        barisan.className = 'baris-pesan ' + pengirim;
+
+        // Avatar hanya untuk pesan kawan
+        const avatarHTML = isKawan
+          ? `<div class="avatar-kawan">🤖</div>`
+          : '';
+
+        // Format teks: ubah newline menjadi <br> dan tandai bold **teks**
+        const teksTerformat = teks
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/\n/g, '<br>');
+
+        barisan.innerHTML = `
+          ${avatarHTML}
+          <div>
+            <div class="bubble ${pengirim}">${teksTerformat}</div>
+            <div class="waktu-pesan">${waktu}</div>
+          </div>
+        `;
+
+        // Sisipkan sebelum typing indicator
+        chatArea.insertBefore(barisan, typingIndicator);
+        gulirKeBawah();
+      }
+
+      // Gulir area chat ke bawah
+      function gulirKeBawah() {
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }
+
+      // Tampilkan / sembunyikan typing indicator
+      function setTyping(aktif) {
+        typingIndicator.classList.toggle('tampil', aktif);
+        if (aktif) gulirKeBawah();
+      }
+
+      // Atur status tombol dan input
+      function setLoading(aktif) {
+        btnKirim.disabled = aktif;
+        inputPesan.disabled = aktif;
+        setTyping(aktif);
+      }
+
+      // ── Kirim Pesan ke Server ────────────────────────────────────────────────
+      async function kirimPesan() {
+        const teks = inputPesan.value.trim();
+        if (!teks || btnKirim.disabled) return;
+
+        // Tampilkan pesan user
+        tambahBubble(teks, 'user');
+        inputPesan.value = '';
+        inputPesan.style.height = 'auto';
+        setLoading(true);
+
+        try {
+          const res = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: teks, sessionId: SESSION_ID }),
+          });
+
+          if (!res.ok) throw new Error('Server error: ' + res.status);
+
+          const data = await res.json();
+          tambahBubble(data.reply, 'kawan');
+        } catch (err) {
+          console.error('Error kirim pesan:', err);
+          tambahBubble('Maaf kak, ada gangguan koneksi 😅 Coba lagi sebentar ya!', 'kawan');
+        } finally {
+          setLoading(false);
+          inputPesan.focus();
+        }
+      }
+
+      // ── Quick Reply ──────────────────────────────────────────────────────────
+      function kirimCepat(teks) {
+        inputPesan.value = teks;
+        kirimPesan();
+      }
+
+      // ── Auto-resize Textarea ─────────────────────────────────────────────────
+      inputPesan.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 110) + 'px';
+      });
+
+      // Enter untuk kirim, Shift+Enter untuk baris baru
+      inputPesan.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          kirimPesan();
+        }
+      });
+
+      // ── Pesan Selamat Datang Otomatis dari Kawan ──────────────────────────────
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          tambahBubble(
+            'Halo kak! 👋 Selamat datang di FMIPA ITB 2026! 🎉\n\nAku Kawan, asisten virtual dari punakawan FMIPA. Aku bisa bantu jawab pertanyaan seputar perkuliahan, ospek, prodi, dan kehidupan kampus di ITB. 😊\n\nMau tanya apa nih kak? 🌟',
+            'kawan'
+          );
+        }, 400);
+      });
+    </script>
+  </body>
+</html>
