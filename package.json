@@ -1,0 +1,21 @@
+{
+  "name": "bandung-apparel-ai",
+  "version": "1.0.0",
+  "description": "AI Customer Service & Sales Assistant untuk toko online Bandung Apparel",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "googleapis": "^171.4.0",
+    "node-telegram-bot-api": "^0.67.0"
+  }
+}
